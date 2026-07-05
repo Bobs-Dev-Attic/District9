@@ -117,6 +117,74 @@ function buildBackpack() {
   return g;
 }
 
+// The exosuit "head" — a distinctive elongated, beaked snout that juts forward
+// and slightly down from between the shoulders. Built pointing +z (forward);
+// the caller tilts it down. Layered brow plates, a central spine ridge, flared
+// cheek plates with hex sensor bolts, a tapering beak, and mandible claws.
+function buildHead() {
+  const g = new THREE.Group();
+
+  // skull base connecting back into the torso/collar
+  g.add(box(1.25, 0.95, 0.8, M.hull, 0, 0, -0.35));
+
+  // stacked brow plates sloping down toward the front (the layered chevrons)
+  const brow1 = box(1.15, 0.34, 0.9, M.mid, 0, 0.34, 0.15);
+  brow1.rotation.x = 0.22;
+  g.add(brow1);
+  const brow2 = box(0.95, 0.28, 0.85, M.hull, 0, 0.16, 0.7);
+  brow2.rotation.x = 0.32;
+  g.add(brow2);
+  const brow3 = box(0.72, 0.22, 0.7, M.mid, 0, -0.02, 1.15);
+  brow3.rotation.x = 0.42;
+  g.add(brow3);
+
+  // central spine ridge running along the top to the snout
+  const spine = box(0.16, 0.24, 2.0, M.dark, 0, 0.42, 0.35);
+  spine.rotation.x = 0.16;
+  g.add(spine);
+
+  // flared cheek plates + hex sensor bolt on each side
+  for (const s of [-1, 1]) {
+    const cheek = box(0.34, 0.72, 1.3, M.hull, s * 0.52, -0.12, 0.35);
+    cheek.rotation.y = s * 0.14;
+    cheek.rotation.z = s * -0.16;
+    g.add(cheek);
+    const bolt = cyl(0.17, 0.17, 0.12, M.dark, 6); // hexagonal sensor
+    bolt.rotation.z = Math.PI / 2;
+    bolt.position.set(s * 0.66, 0.02, 0.5);
+    g.add(bolt);
+    const glow = cyl(0.07, 0.07, 0.14, M.glow, 6);
+    glow.rotation.z = Math.PI / 2;
+    glow.position.set(s * 0.71, 0.02, 0.5);
+    g.add(glow);
+  }
+
+  // tapering beak snout (4-sided pyramid pointing forward)
+  const beak = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.5, 1.5, 4), M.hull);
+  beak.rotation.x = Math.PI / 2 + 0.18; // point forward, dipping down
+  beak.rotation.y = Math.PI / 4;        // square-on to the body
+  beak.position.set(0, 0.02, 1.35);
+  beak.castShadow = true;
+  g.add(beak);
+
+  // lower jaw plate under the snout
+  const jaw = box(0.66, 0.28, 1.0, M.mid, 0, -0.42, 0.7);
+  jaw.rotation.x = -0.15;
+  g.add(jaw);
+
+  // small articulated mandible claws at the very tip
+  for (const s of [-1, 1]) {
+    const m1 = box(0.07, 0.07, 0.4, M.dark, s * 0.12, -0.15, 1.9);
+    m1.rotation.x = -0.5;
+    g.add(m1);
+    const m2 = box(0.06, 0.06, 0.3, M.dark, s * 0.14, -0.32, 2.1);
+    m2.rotation.x = -0.9;
+    g.add(m2);
+  }
+
+  return g;
+}
+
 // The heavy chaingun / rail rifle carried on the right arm.
 function buildChaingun() {
   const g = new THREE.Group();
@@ -364,6 +432,12 @@ export function buildExosuit() {
   const guard = box(1.0, 0.9, 0.5, M.mid, 0, -0.5, 0.6);
   guard.rotation.x = 0.2;
   torso.add(guard);
+
+  // distinctive beaked head/face jutting forward from between the shoulders
+  const head = buildHead();
+  head.position.set(0, 1.5, 0.35);
+  head.rotation.x = 0.12; // dip the whole face forward/down
+  torso.add(head);
 
   // backpack sits behind the collar
   const backpack = buildBackpack();
