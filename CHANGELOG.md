@@ -3,6 +3,12 @@
 The version shown on the game's loading screen comes from `src/version.js`.
 Bump that file, `package.json`, and add an entry here on every update.
 
+## v1.4.0
+- Reworked the arm pose to match the second walking reference: the arms now
+  **hang down at the sides with bent elbows**, the upper arms angling down from
+  the high shoulders and the weapons draping down alongside the thighs (muzzles
+  pitched down/slightly forward) — instead of being held up horizontally.
+
 ## v1.3.1
 - Decoupled movement from the camera: the mouse is now **strictly look/orbit**.
   WASD moves the suit along fixed world axes regardless of the camera angle, so
