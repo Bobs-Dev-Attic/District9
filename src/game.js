@@ -52,6 +52,8 @@ const { obstacles } = buildEnvironment(scene, WORLD);
 // ---- Player exosuit ----
 const suit = buildExosuit();
 scene.add(suit);
+const CORE_Y = suit.userData.core.position.y;        // resting hip height
+const TORSO_HUNCH = suit.userData.torso.rotation.x;  // baked-in forward hunch
 const player = {
   pos: new THREE.Vector3(0, 0, 0),
   vel: new THREE.Vector3(),
@@ -62,6 +64,13 @@ const player = {
   recoil: 0,
   radius: 1.4,
   alive: true,
+  // ---- animation state ----
+  prevFacing: 0,
+  turnRate: 0,     // smoothed yaw velocity, drives torso counter-rotation
+  lean: 0,         // smoothed forward lean (accel / boost)
+  landImpact: 0,   // decaying jolt applied on each footfall (stomp settle)
+  prevStride: 0,   // previous sign of the stride sine, to detect footfalls
+  shudder: 0,      // decaying whole-body shake while firing
 };
 const SPEED = 12;
 const BOOST_SPEED = 26;
@@ -172,6 +181,8 @@ function resetGame() {
   player.hp = player.maxHp;
   player.boostFuel = player.maxFuel;
   player.alive = true;
+  player.facing = 0; player.prevFacing = 0; player.turnRate = 0;
+  player.lean = 0; player.landImpact = 0; player.recoil = 0; player.shudder = 0;
   wave = 0; score = 0; betweenWaves = 2;
   updateHud();
 }
@@ -262,6 +273,7 @@ function tick() {
     if (s.firing && player.fireCooldown <= 0) {
       player.fireCooldown = 0.11;
       player.recoil = 1;
+      player.shudder = Math.min(1, player.shudder + 0.5);
       // muzzle world position
       const muzzleWorld = new THREE.Vector3();
       suit.userData.muzzle.getWorldPosition(muzzleWorld);
@@ -274,31 +286,84 @@ function tick() {
       spawnFlash(muzzleWorld, 0xffd27a, 0.8);
     }
 
-    // ----- Walk animation -----
-    const gait = moving ? (wantBoost ? 16 : 10) : 0;
+    // ----- Walk animation (weighted, digitigrade stomp) -----
+    const gait = moving ? (wantBoost ? 15 : 9.5) : 0;
     walkPhase += gait * dt;
-    const { core, legs, arms, gunArm } = suit.userData;
+    const { core, torso, backpack, legs, arms, gunArm } = suit.userData;
+
+    // Decaying jolts.
+    player.recoil *= Math.pow(0.02, dt);   // snappy recoil recovery
+    player.shudder *= Math.pow(0.001, dt);
+    player.landImpact *= Math.pow(0.0005, dt);
+
     if (moving) {
-      core.position.y = 4.2 + Math.abs(Math.sin(walkPhase)) * 0.35;
-      legs[0].userData.thigh.rotation.x = Math.sin(walkPhase) * 0.5;
-      legs[1].userData.thigh.rotation.x = Math.sin(walkPhase + Math.PI) * 0.5;
-      legs[0].userData.knee.rotation.x = Math.max(0, Math.cos(walkPhase)) * 0.5;
-      legs[1].userData.knee.rotation.x = Math.max(0, Math.cos(walkPhase + Math.PI)) * 0.5;
+      const stride = Math.sin(walkPhase);
+      // Footfall detection: a foot plants each time the stride sine crosses 0.
+      const strideSign = Math.sign(stride);
+      if (strideSign !== 0 && strideSign !== player.prevStride) {
+        player.landImpact = 1;               // trigger stomp settle
+        player.prevStride = strideSign;
+      }
+
+      // Thighs swing fore/aft in anti-phase.
+      const amp = wantBoost ? 0.62 : 0.5;
+      legs[0].userData.thigh.rotation.x = Math.sin(walkPhase) * amp;
+      legs[1].userData.thigh.rotation.x = Math.sin(walkPhase + Math.PI) * amp;
+      // Knees bend during the swing (leg lifting), stay straight while planted.
+      const lift0 = Math.max(0, -Math.cos(walkPhase));
+      const lift1 = Math.max(0, -Math.cos(walkPhase + Math.PI));
+      legs[0].userData.knee.rotation.x = lift0 * 0.75;
+      legs[1].userData.knee.rotation.x = lift1 * 0.75;
+      // Shins counter-rotate so the thruster feet stay closer to level.
+      legs[0].userData.shin.rotation.x = -lift0 * 0.35;
+      legs[1].userData.shin.rotation.x = -lift1 * 0.35;
+
+      // Heavy double-bounce body bob minus a sharp dip on each footfall.
+      const bob = Math.abs(stride) * 0.42;
+      core.position.y = CORE_Y - 0.12 + bob - player.landImpact * 0.28;
     } else {
-      // idle settle
-      core.position.y += (4.2 - core.position.y) * 0.1;
+      // Idle settle back to the resting stance with subtle "breathing".
+      const breathe = Math.sin(t * 1.4) * 0.04;
+      core.position.y += (CORE_Y + breathe - core.position.y) * 0.12;
       for (const leg of legs) {
         leg.userData.thigh.rotation.x *= 0.85;
         leg.userData.knee.rotation.x *= 0.85;
+        leg.userData.shin.rotation.x *= 0.85;
       }
     }
-    // gentle arm sway + recoil kick on the gun arm
-    player.recoil *= 0.8;
+
+    // ----- Forward lean (accel / boost) -----
+    const targetLean = moving ? (wantBoost ? 0.26 : 0.13) : 0;
+    player.lean += (targetLean - player.lean) * Math.min(1, dt * 6);
+
+    // ----- Turn counter-rotation: torso lags the yaw, then catches up -----
+    let dFacing = player.facing - player.prevFacing;
+    while (dFacing > Math.PI) dFacing -= Math.PI * 2;
+    while (dFacing < -Math.PI) dFacing += Math.PI * 2;
+    player.turnRate += (dFacing / Math.max(dt, 1e-3) - player.turnRate) * Math.min(1, dt * 8);
+    player.prevFacing = player.facing;
+
+    // ----- Compose torso pose: hunch + lean + recoil pitch + firing shudder -----
+    const shudderX = player.shudder * (Math.sin(t * 90) * 0.02);
+    torso.rotation.x = TORSO_HUNCH + player.lean + player.recoil * 0.10 + shudderX;
+    torso.rotation.z = THREE.MathUtils.clamp(-player.turnRate * 0.03, -0.14, 0.14);
+    torso.rotation.y = THREE.MathUtils.clamp(-player.turnRate * 0.02, -0.1, 0.1);
+
+    // Backpack / antenna mast lags the body sway for a bit of secondary motion.
+    if (backpack) {
+      backpack.rotation.x = -player.lean * 0.35 + Math.sin(t * 2.1) * 0.015 + player.landImpact * 0.05;
+      backpack.rotation.z = THREE.MathUtils.clamp(player.turnRate * 0.02, -0.1, 0.1);
+    }
+
+    // Off-hand arm sways with the gait; gun arm kicks back hard on recoil.
     arms[1].userData.forearm.rotation.x = Math.sin(walkPhase + 1) * 0.1;
-    gunArm.userData.forearm.rotation.x = -0.15 - player.recoil * 0.4;
+    gunArm.rotation.x = -player.recoil * 0.28;                       // whole arm kick
+    gunArm.userData.forearm.rotation.x = -0.15 - player.recoil * 0.25;
 
     // ----- Body orientation -----
     suit.position.copy(player.pos);
+    // lateral firing shudder nudges the whole rig a touch
+    suit.position.x += player.shudder * Math.sin(t * 120) * 0.03;
     suit.rotation.y = player.facing;
 
     // ----- Enemies -----
