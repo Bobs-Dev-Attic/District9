@@ -159,27 +159,34 @@ function buildHead() {
     g.add(glow);
   }
 
-  // tapering beak snout (4-sided pyramid pointing forward)
-  const beak = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.5, 1.5, 4), M.hull);
+  // tapering beak snout (4-sided pyramid pointing forward) — extended forward
+  const beak = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.5, 1.9, 4), M.hull);
   beak.rotation.x = Math.PI / 2 + 0.18; // point forward, dipping down
   beak.rotation.y = Math.PI / 4;        // square-on to the body
-  beak.position.set(0, 0.02, 1.35);
+  beak.position.set(0, 0.02, 1.5);
   beak.castShadow = true;
   g.add(beak);
 
   // lower jaw plate under the snout
-  const jaw = box(0.66, 0.28, 1.0, M.mid, 0, -0.42, 0.7);
+  const jaw = box(0.66, 0.28, 1.1, M.mid, 0, -0.42, 0.8);
   jaw.rotation.x = -0.15;
   g.add(jaw);
 
-  // small articulated mandible claws at the very tip
-  for (const s of [-1, 1]) {
-    const m1 = box(0.07, 0.07, 0.4, M.dark, s * 0.12, -0.15, 1.9);
-    m1.rotation.x = -0.5;
-    g.add(m1);
-    const m2 = box(0.06, 0.06, 0.3, M.dark, s * 0.14, -0.32, 2.1);
-    m2.rotation.x = -0.9;
-    g.add(m2);
+  // Mandible tentacles clustered at (and attached to) the beak tip.
+  // The beak tip sits at ~(0, -0.15, 2.44); a knuckle bridges the gap and the
+  // tentacles curl forward + down from it (positive rotation.x = curl down).
+  const tipY = -0.15, tipZ = 2.32;
+  g.add(box(0.24, 0.22, 0.34, M.dark, 0, tipY, tipZ)); // knuckle bridging to the beak
+  const claws = [[-1, 0.13], [1, 0.13], [0, 0.0]];
+  for (const [s, xo] of claws) {
+    const seg1 = box(0.09, 0.09, 0.42, M.dark, s * xo, tipY - 0.05, tipZ + 0.26);
+    seg1.rotation.x = 0.5;          // curl down/forward
+    seg1.rotation.y = s * 0.18;
+    g.add(seg1);
+    const seg2 = box(0.07, 0.07, 0.36, M.dark, s * xo * 1.15, tipY - 0.26, tipZ + 0.5);
+    seg2.rotation.x = 1.0;          // curl further down (claw tip)
+    seg2.rotation.y = s * 0.22;
+    g.add(seg2);
   }
 
   return g;

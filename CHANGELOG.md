@@ -3,6 +3,11 @@
 The version shown on the game's loading screen comes from `src/version.js`.
 Bump that file, `package.json`, and add an entry here on every update.
 
+## v1.6.1
+- Extended the head/beak a little further forward, and reattached the mandible
+  "tentacles" at the tip — they were floating detached in front of the beak.
+  They now cluster on a knuckle at the beak tip and curl down/forward.
+
 ## v1.6.0
 - Added the exosuit's distinctive **beaked head/"face"** (`buildHead`): an
   elongated angular snout that juts forward and down from between the shoulder
