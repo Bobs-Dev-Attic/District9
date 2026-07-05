@@ -3,6 +3,7 @@ import { buildExosuit } from './exosuit.js';
 import { buildEnvironment } from './environment.js';
 import { spawnEnemy, updateEnemy } from './enemies.js';
 import { createInput } from './input.js';
+import { VERSION } from './version.js';
 
 // ===========================================================================
 // District 9 — Exosuit Simulator
@@ -418,5 +419,8 @@ showOverlay('DISTRICT 9 · EXOSUIT',
   '<span class="keys">Click / Space</span> fire · <span class="keys">Shift</span> thruster boost<br>' +
   '<span class="dim">On mobile: use the on-screen joystick &amp; buttons.</span>',
   'DEPLOY');
+const versionEl = document.getElementById('version');
+if (versionEl) versionEl.textContent = VERSION;
+console.log('District 9 · Exosuit Simulator ' + VERSION);
 updateHud();
 tick();

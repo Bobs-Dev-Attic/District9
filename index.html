@@ -95,6 +95,11 @@
   }
   #start-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,154,26,0.5); }
   #start-btn:active { transform: translateY(0); }
+  #version {
+    position: absolute; bottom: 20px;
+    font-size: 12px; letter-spacing: 3px; font-weight: 700;
+    color: var(--accent); opacity: 0.7; font-family: monospace;
+  }
 
   /* ---------- Touch controls ---------- */
   #touch-controls { position: fixed; inset: 0; z-index: 10; pointer-events: none; display: none; }
@@ -164,6 +169,7 @@
     <div id="overlay-title">DISTRICT 9</div>
     <div id="overlay-sub"></div>
     <button id="start-btn">DEPLOY</button>
+    <div id="version">v0.0.0</div>
   </div>
 
   <script type="importmap">
