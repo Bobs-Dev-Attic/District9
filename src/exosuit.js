@@ -176,45 +176,46 @@ function buildArm(side, weapon) {
   shoulder.add(pauldron);
   shoulder.add(box(0.95, 0.14, 0.85, M.accent, side * 0.1, 0.42, 0)); // trim
 
-  // curved upper arm reaching out to the side
-  const upper = cyl(0.26, 0.3, 1.5, M.mid, 8);
-  upper.rotation.z = side * Math.PI * 0.5;
-  upper.rotation.x = 0.1;
-  upper.position.set(side * 0.85, 0.0, 0);
+  // Upper arm angles DOWN and slightly out from the high shoulder to a bent
+  // elbow near waist height (reference: arms drape down at the sides).
+  const upper = cyl(0.24, 0.28, 1.2, M.mid, 8);
+  upper.rotation.z = side * 0.34;   // lean out ~20° while hanging down
+  upper.rotation.x = 0.12;
+  upper.position.set(side * 0.45, -0.55, 0.05);
   shoulder.add(upper);
 
-  // elbow joint
+  // elbow joint below and slightly out from the shoulder
   const elbow = new THREE.Group();
-  elbow.position.set(side * 1.6, -0.05, 0.05);
+  elbow.position.set(side * 0.78, -1.05, 0.12);
   shoulder.add(elbow);
-  elbow.add(cyl(0.3, 0.3, 0.6, M.dark, 8));
+  elbow.add(cyl(0.28, 0.28, 0.5, M.dark, 8));
 
-  // Forearm bent forward at the elbow (weapons held up in front), matching
-  // the walk-reference pose rather than hanging straight down.
-  const FOREARM_BEND = -1.15; // radians about x: negative swings the forearm forward
+  // Forearm hangs DOWN with a slight forward bend so the weapon drapes down
+  // alongside the thigh (muzzle pointing down/forward), matching the walk GIF.
+  const FOREARM_BEND = -0.32; // small forward bend; the arm mostly hangs down
   const forearm = new THREE.Group();
   forearm.position.copy(elbow.position);
   forearm.rotation.x = FOREARM_BEND;
   shoulder.add(forearm);
-  const fa = cyl(0.24, 0.28, 1.5, M.mid, 8);
-  fa.position.y = -0.75;
+  const fa = cyl(0.22, 0.26, 1.4, M.mid, 8);
+  fa.position.y = -0.7;
   forearm.add(fa);
   // cable bundle running along the forearm
-  const cables = cableBundle(1.4, 4);
-  cables.position.set(side * 0.28, 0, 0.22);
+  const cables = cableBundle(1.2, 4);
+  cables.position.set(side * 0.24, 0, 0.2);
   forearm.add(cables);
 
   // wrist + weapon at the end of the forearm
   const wrist = new THREE.Group();
-  wrist.position.set(0, -1.5, 0);
+  wrist.position.set(0, -1.1, 0);
   forearm.add(wrist);
-  // The weapon's "forward" (+z) should read as forward + slightly down. The
-  // forearm bend already pitches the wrist, so cancel it and add a small dip.
-  const AIM_PITCH = 0.28; // net downward pitch of the barrel/claw from horizontal
+  // The weapon hangs down beside the leg, muzzle angled down + slightly forward
+  // (kept off vertical so the long barrel clears the ground).
+  const AIM_PITCH = 1.0; // downward pitch of the barrel/claw
   if (weapon === 'gun') {
     const gun = buildChaingun();
     gun.rotation.x = AIM_PITCH - FOREARM_BEND;
-    gun.position.set(0, -0.15, 0.15);
+    gun.position.set(0, -0.2, 0.12);
     wrist.add(gun);
     shoulder.userData.muzzle = gun.userData.muzzle;
   } else {
