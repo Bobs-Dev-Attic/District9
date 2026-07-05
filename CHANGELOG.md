@@ -3,6 +3,19 @@
 The version shown on the game's loading screen comes from `src/version.js`.
 Bump that file, `package.json`, and add an entry here on every update.
 
+## v1.2.0
+- Switched to an **exosuit viewer / showcase** mode while the graphics and
+  animation are being dialled in:
+  - Removed the enemy drones and combat (waves, damage, enemy fire) for now.
+  - Added full **orbit camera** control: drag to rotate, scroll/pinch to zoom,
+    right-drag / two-finger to pan, and `R` (or the RESET VIEW button) to
+    recentre. The camera rig follows the suit so it stays framed while walking.
+  - The suit can still walk (WASD/joystick), boost (Shift), and fire (Space /
+    FIRE button) so all the animations can be inspected from any angle.
+  - Mouse no longer aims/fires (it drives the camera); simplified the HUD to a
+    boost bar, a controls legend, and a reset-view button.
+  - Vendored three.js `OrbitControls` locally for offline use.
+
 ## v1.1.0
 - Refined exosuit animation for a heavier, more grounded feel, informed by the
   reference turntable pose:
