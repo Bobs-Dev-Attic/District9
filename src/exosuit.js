@@ -394,6 +394,7 @@ function buildLeg(side) {
   hip.userData.thigh = thigh;
   hip.userData.knee = knee;
   hip.userData.shin = shin;
+  hip.userData.ankle = ankle; // exposed so the walk cycle can keep the foot level
   return hip;
 }
 

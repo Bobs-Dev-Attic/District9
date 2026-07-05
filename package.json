@@ -1,6 +1,6 @@
 {
   "name": "district9-exosuit",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "//version": "Displayed on the loading screen; keep in sync with src/version.js and CHANGELOG.md",
   "description": "District 9 — a 3D isometric low-poly exosuit combat simulator.",
   "type": "module",

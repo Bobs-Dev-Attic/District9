@@ -164,6 +164,25 @@ const followPos = new THREE.Vector3();   // last suit position the camera tracke
 const WORLD_FWD = new THREE.Vector3(0, 0, -1);
 const WORLD_RIGHT = new THREE.Vector3(1, 0, 0);
 
+// One digitigrade leg through a coordinated stance/swing cycle at phase p.
+//  - STANCE (p in [0,π]): foot planted, thigh rotates from front to back so the
+//    body passes over the foot.
+//  - SWING  (p in [π,2π]): foot lifts, knee flexes, thigh swings forward again.
+// The ankle is counter-rotated to keep the foot LEVEL with the ground (with a
+// touch of toe clearance in swing) — this is what stops the "horse leg" pawing.
+function stepLeg(leg, p, amp, boost) {
+  const ud = leg.userData;
+  const thighA = Math.cos(p) * amp;            // + forward, − back
+  const lift = Math.max(0, -Math.sin(p));      // 0 during stance, peaks mid-swing
+  const kneeA = 0.16 + lift * (boost ? 1.15 : 0.95);
+  const shinA = -0.04 - lift * 0.22;
+  ud.thigh.rotation.x = thighA;
+  ud.knee.rotation.x = kneeA;
+  ud.shin.rotation.x = shinA;
+  // keep the foot flat: cancel the accumulated chain tilt, plus small toe-up in swing
+  ud.ankle.rotation.x = -(thighA + kneeA + shinA) - lift * 0.12;
+}
+
 function tick() {
   requestAnimationFrame(tick);
   const dt = Math.min(clock.getDelta(), 0.05);
@@ -228,21 +247,14 @@ function tick() {
         player.landImpact = 1;               // trigger stomp settle
         player.prevStride = strideSign;
       }
-      // Thighs swing fore/aft in anti-phase.
-      const amp = wantBoost ? 0.62 : 0.5;
-      legs[0].userData.thigh.rotation.x = Math.sin(walkPhase) * amp;
-      legs[1].userData.thigh.rotation.x = Math.sin(walkPhase + Math.PI) * amp;
-      // Knees bend during the swing (leg lifting), stay straight while planted.
-      const lift0 = Math.max(0, -Math.cos(walkPhase));
-      const lift1 = Math.max(0, -Math.cos(walkPhase + Math.PI));
-      legs[0].userData.knee.rotation.x = lift0 * 0.75;
-      legs[1].userData.knee.rotation.x = lift1 * 0.75;
-      // Shins counter-rotate so the thruster feet stay closer to level.
-      legs[0].userData.shin.rotation.x = -lift0 * 0.35;
-      legs[1].userData.shin.rotation.x = -lift1 * 0.35;
-      // Heavy double-bounce body bob minus a sharp dip on each footfall.
-      const bob = Math.abs(stride) * 0.42;
-      core.position.y = CORE_Y - 0.12 + bob - player.landImpact * 0.28;
+      // Coordinated stance/swing gait, feet kept level (see stepLeg).
+      const amp = wantBoost ? 0.6 : 0.48;
+      stepLeg(legs[0], walkPhase, amp, wantBoost);
+      stepLeg(legs[1], walkPhase + Math.PI, amp, wantBoost);
+      // Body bob: low at footfall (walkPhase 0/π), high at mid-stance, plus a
+      // sharp dip on each footfall.
+      const bob = Math.abs(stride) * 0.34;
+      core.position.y = CORE_Y - 0.1 + bob - player.landImpact * 0.24;
     } else {
       // Idle settle back to the resting stance with subtle "breathing".
       const breathe = Math.sin(t * 1.4) * 0.04;
@@ -251,6 +263,7 @@ function tick() {
         leg.userData.thigh.rotation.x *= 0.85;
         leg.userData.knee.rotation.x *= 0.85;
         leg.userData.shin.rotation.x *= 0.85;
+        leg.userData.ankle.rotation.x *= 0.85;
       }
     }
 
