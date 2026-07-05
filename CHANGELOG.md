@@ -3,6 +3,17 @@
 The version shown on the game's loading screen comes from `src/version.js`.
 Bump that file, `package.json`, and add an entry here on every update.
 
+## v1.5.0
+- Reworked the upper body to match the detailed reference turnaround and get
+  the signature hunched, wide-shouldered "vulture" silhouette:
+  - Added broad **shoulder yokes** — curved cantilever booms that sweep up and
+    out from the upper back to shoulder balls at the outer ends, with orange
+    accent caps. The arms now hang from these wide outer ends.
+  - Added thick **cable bundles** draping over the yokes and down the chest.
+  - Added a forward-jutting **chest keel** (the "beak").
+  - The arms hang near-vertically from the wide shoulders (the yoke provides the
+    width) with the weapons draping down outside the thighs.
+
 ## v1.4.0
 - Reworked the arm pose to match the second walking reference: the arms now
   **hang down at the sides with bent elbows**, the upper arms angling down from

@@ -166,27 +166,70 @@ function buildClaw() {
   return g;
 }
 
-// Build one arm. side = -1 (left) or +1 (right). The upper arm curves outward
-// then the forearm hangs down, matching the silhouette in the reference art.
+// A broad shoulder yoke: a curved cantilever boom that sweeps up-and-out from
+// the upper back then drops to a shoulder ball at the outer end, with thick
+// cables draping over it. This gives the hunched, wide-shouldered "vulture"
+// silhouette from the reference. Returns the group and the arm-attach point.
+function buildShoulderYoke(side) {
+  const g = new THREE.Group();
+
+  // inner boom rising from the back toward the peak
+  const b1 = box(1.1, 0.44, 0.55, M.hull, side * 0.9, 1.7, -0.3);
+  b1.rotation.z = side * -0.05;
+  b1.rotation.y = side * 0.4;
+  g.add(b1);
+  // mid boom sweeping outward and tilting down
+  const b2 = box(1.2, 0.42, 0.52, M.mid, side * 1.55, 1.58, -0.05);
+  b2.rotation.z = side * 0.5;
+  b2.rotation.y = side * 0.12;
+  g.add(b2);
+  // orange accent cap near the peak
+  const cap = box(0.6, 0.12, 0.56, M.accent, side * 1.15, 1.82, -0.16);
+  cap.rotation.z = side * -0.05;
+  cap.rotation.y = side * 0.4;
+  g.add(cap);
+  // outer drop block down to the shoulder
+  g.add(box(0.6, 0.9, 0.62, M.hull, side * 2.05, 1.1, 0.0));
+  // shoulder ball joint
+  const ball = cyl(0.42, 0.42, 0.64, M.dark, 10);
+  ball.rotation.z = Math.PI / 2;
+  ball.position.set(side * 2.05, 0.82, 0.0);
+  g.add(ball);
+
+  // thick cables draping from the back over the yoke down toward the arm
+  for (let i = 0; i < 3; i++) {
+    const c = cyl(0.07, 0.07, 1.9, M.dark, 5);
+    c.position.set(side * (1.25 + i * 0.14), 1.25, -0.2 - i * 0.05);
+    c.rotation.z = side * 0.62;
+    c.rotation.x = 0.25;
+    g.add(c);
+  }
+
+  g.userData.armAttach = new THREE.Vector3(side * 2.05, 0.75, 0.0);
+  return g;
+}
+
+// Build one arm. side = -1 (left) or +1 (right). The upper arm hangs down from
+// the shoulder yoke to a bent elbow; the forearm + weapon drape down at the side.
 function buildArm(side, weapon) {
   const shoulder = new THREE.Group();
 
-  // shoulder pauldron
-  const pauldron = box(0.9, 0.7, 0.8, M.hull, side * 0.1, 0, 0);
+  // compact shoulder pauldron (the wide part is the yoke, above)
+  const pauldron = box(0.7, 0.6, 0.7, M.hull, side * 0.05, 0, 0);
   shoulder.add(pauldron);
   shoulder.add(box(0.95, 0.14, 0.85, M.accent, side * 0.1, 0.42, 0)); // trim
 
-  // Upper arm angles DOWN and slightly out from the high shoulder to a bent
-  // elbow near waist height (reference: arms drape down at the sides).
+  // Upper arm hangs down (near-vertical) from the yoke's shoulder ball to a
+  // bent elbow — the yoke already provides the outward width.
   const upper = cyl(0.24, 0.28, 1.2, M.mid, 8);
-  upper.rotation.z = side * 0.34;   // lean out ~20° while hanging down
+  upper.rotation.z = side * 0.1;
   upper.rotation.x = 0.12;
-  upper.position.set(side * 0.45, -0.55, 0.05);
+  upper.position.set(side * 0.14, -0.58, 0.05);
   shoulder.add(upper);
 
-  // elbow joint below and slightly out from the shoulder
+  // elbow joint below the shoulder
   const elbow = new THREE.Group();
-  elbow.position.set(side * 0.78, -1.05, 0.12);
+  elbow.position.set(side * 0.28, -1.12, 0.12);
   shoulder.add(elbow);
   elbow.add(cyl(0.28, 0.28, 0.5, M.dark, 8));
 
@@ -303,6 +346,12 @@ export function buildExosuit() {
   eye.position.set(0, 1.0, 0.82);
   torso.add(eye);
 
+  // forward chest keel — a faceted block jutting forward and down (the "beak")
+  const keel = box(1.15, 1.7, 0.9, M.hull, 0, 0.1, 0.55);
+  keel.rotation.x = 0.34;
+  torso.add(keel);
+  torso.add(box(0.9, 0.5, 0.4, M.mid, 0, 0.9, 0.95)); // upper keel facet
+
   // lower torso tapering to pelvis (the pointed "chin" of the chassis)
   const belly = new THREE.Mesh(
     new THREE.CylinderGeometry(0.55, 1.0, 1.6, 6),
@@ -321,13 +370,28 @@ export function buildExosuit() {
   backpack.position.set(0, 1.6, -0.9);
   torso.add(backpack);
 
-  // ------ Arms attach to the collar sides ------
+  // neck cables draping down the front of the chest
+  for (let i = 0; i < 4; i++) {
+    const c = cyl(0.05, 0.05, 1.1, M.dark, 5);
+    c.position.set(-0.3 + i * 0.2, 1.05, 0.6);
+    c.rotation.x = 0.35;
+    torso.add(c);
+  }
+
+  // ------ Wide shoulder yokes + arms hanging from their outer ends ------
+  const leftYoke = buildShoulderYoke(-1);
+  const rightYoke = buildShoulderYoke(1);
+  leftYoke.position.set(0, 0.2, 0);
+  rightYoke.position.set(0, 0.2, 0);
+  torso.add(leftYoke);
+  torso.add(rightYoke);
+
   const leftArm = buildArm(-1, 'gun');   // heavy chaingun on the suit's left
-  leftArm.position.set(-1.5, 1.15, 0);
+  leftArm.position.copy(leftYoke.userData.armAttach).add(new THREE.Vector3(0, 0.2, 0));
   torso.add(leftArm);
 
   const rightArm = buildArm(1, 'claw');
-  rightArm.position.set(1.5, 1.15, 0);
+  rightArm.position.copy(rightYoke.userData.armAttach).add(new THREE.Vector3(0, 0.2, 0));
   torso.add(rightArm);
 
   // ------ Legs attach to the pelvis ------
