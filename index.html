@@ -31,6 +31,7 @@
     padding: 16px; display: flex; flex-direction: column; justify-content: space-between;
   }
   #hud-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  #hud-bottom { display: flex; flex-direction: column; align-items: center; gap: 6px; }
   .bars { display: flex; flex-direction: column; gap: 8px; }
   .bar-row { display: flex; align-items: center; gap: 8px; }
   .bar-label {
@@ -60,6 +61,24 @@
     align-self: center; font-size: 12px; letter-spacing: 4px; font-weight: 700;
     color: var(--accent); opacity: 0.55; text-transform: uppercase;
   }
+
+  .hud-btn {
+    pointer-events: auto; cursor: pointer;
+    padding: 8px 16px; font-size: 11px; font-weight: 800; letter-spacing: 2px;
+    color: var(--accent); background: var(--panel); text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,0.15); border-left: 3px solid var(--accent);
+    border-radius: 4px;
+  }
+  .hud-btn:hover { color: #fff; background: rgba(30,34,39,0.9); }
+  .hud-btn:active { transform: translateY(1px); }
+
+  #legend {
+    align-self: center; display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center;
+    padding: 8px 14px; margin-bottom: 6px; max-width: 92%;
+    background: var(--panel); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;
+    font-size: 11px; letter-spacing: 1px; color: #b9c1c7;
+  }
+  #legend b { color: var(--accent); font-family: monospace; letter-spacing: 0; }
 
   /* ---------- Overlay ---------- */
   #overlay {
@@ -139,24 +158,19 @@
     <div id="hud-top">
       <div class="bars">
         <div class="bar-row">
-          <span class="bar-label">Hull</span>
-          <div class="bar"><div id="hp-fill" class="bar-fill" style="width:100%"></div></div>
-        </div>
-        <div class="bar-row">
           <span class="bar-label">Boost</span>
           <div class="bar"><div id="fuel-fill" class="bar-fill" style="width:100%"></div></div>
         </div>
       </div>
-      <div class="stats">
-        <div class="lbl">Score</div>
-        <div class="big" id="score">0</div>
-        <div class="row">
-          <div>WAVE <b id="wave">0</b></div>
-          <div>HOSTILES <b id="enemies">0</b></div>
-        </div>
-      </div>
+      <button id="btn-reset" class="hud-btn">RESET VIEW</button>
     </div>
-    <div class="title-tag">MNU · Exosuit Control Interface</div>
+    <div id="hud-bottom">
+      <div id="legend">
+        <span><b>Drag</b> rotate</span><span><b>Scroll / pinch</b> zoom</span><span><b>Right-drag / 2-finger</b> pan</span>
+        <span><b>WASD</b> walk</span><span><b>Shift</b> boost</span><span><b>Space</b> fire</span>
+      </div>
+      <div class="title-tag">MNU · Exosuit Showcase</div>
+    </div>
   </div>
 
   <div id="touch-controls">
@@ -175,7 +189,8 @@
   <script type="importmap">
   {
     "imports": {
-      "three": "./vendor/three.module.js"
+      "three": "./vendor/three.module.js",
+      "three/addons/controls/OrbitControls.js": "./vendor/OrbitControls.js"
     }
   }
   </script>

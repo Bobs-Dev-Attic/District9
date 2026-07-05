@@ -36,16 +36,9 @@ export function createInput(domElement) {
     if (e.code === 'ShiftLeft') state.boosting = false;
   });
 
-  // Mouse aim + fire (desktop)
-  domElement.addEventListener('mousemove', (e) => {
-    const r = domElement.getBoundingClientRect();
-    state.mouse.x = ((e.clientX - r.left) / r.width) * 2 - 1;
-    state.mouse.y = -((e.clientY - r.top) / r.height) * 2 + 1;
-    state.mouse.active = true;
-  });
-  domElement.addEventListener('mousedown', (e) => { if (e.button === 0) state.firing = true; });
-  window.addEventListener('mouseup', (e) => { if (e.button === 0) state.firing = false; });
-  domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+  // Note: the mouse now drives the orbit camera (handled by OrbitControls),
+  // so it is intentionally NOT bound to aim/fire here. Firing is Space (below)
+  // or the on-screen FIRE button.
 
   // ---- Touch controls ----
   const joystick = document.getElementById('joystick');
