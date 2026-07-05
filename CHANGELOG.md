@@ -3,6 +3,12 @@
 The version shown on the game's loading screen comes from `src/version.js`.
 Bump that file, `package.json`, and add an entry here on every update.
 
+## v1.7.0
+- Added the distinctive pelvis **"inverted tail"** (`buildPelvisTail`): a
+  segmented, faceted keel that droops down and back from the rear of the pelvis,
+  tapering to a pointed tip between the legs like a rudder/stinger. Exposed as
+  `userData.tail` for future secondary animation.
+
 ## v1.6.1
 - Extended the head/beak a little further forward, and reattached the mandible
   "tentacles" at the tip — they were floating detached in front of the beak.
