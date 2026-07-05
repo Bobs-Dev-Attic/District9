@@ -189,9 +189,12 @@ function buildArm(side, weapon) {
   shoulder.add(elbow);
   elbow.add(cyl(0.3, 0.3, 0.6, M.dark, 8));
 
-  // forearm hangs downward
+  // Forearm bent forward at the elbow (weapons held up in front), matching
+  // the walk-reference pose rather than hanging straight down.
+  const FOREARM_BEND = -1.15; // radians about x: negative swings the forearm forward
   const forearm = new THREE.Group();
   forearm.position.copy(elbow.position);
+  forearm.rotation.x = FOREARM_BEND;
   shoulder.add(forearm);
   const fa = cyl(0.24, 0.28, 1.5, M.mid, 8);
   fa.position.y = -0.75;
@@ -201,24 +204,28 @@ function buildArm(side, weapon) {
   cables.position.set(side * 0.28, 0, 0.22);
   forearm.add(cables);
 
-  // wrist + weapon
+  // wrist + weapon at the end of the forearm
   const wrist = new THREE.Group();
   wrist.position.set(0, -1.5, 0);
   forearm.add(wrist);
+  // The weapon's "forward" (+z) should read as forward + slightly down. The
+  // forearm bend already pitches the wrist, so cancel it and add a small dip.
+  const AIM_PITCH = 0.28; // net downward pitch of the barrel/claw from horizontal
   if (weapon === 'gun') {
     const gun = buildChaingun();
-    gun.rotation.x = Math.PI / 2; // point barrel forward (down the -? -> rotate to +z forward)
-    gun.position.set(0, -0.1, 0.2);
+    gun.rotation.x = AIM_PITCH - FOREARM_BEND;
+    gun.position.set(0, -0.15, 0.15);
     wrist.add(gun);
     shoulder.userData.muzzle = gun.userData.muzzle;
   } else {
     const claw = buildClaw();
-    claw.rotation.x = Math.PI / 2;
+    claw.rotation.x = AIM_PITCH - FOREARM_BEND;
     claw.position.set(0, -0.2, 0.1);
     wrist.add(claw);
   }
 
   shoulder.userData.forearm = forearm;
+  shoulder.userData.forearmBase = FOREARM_BEND; // animation layers on top of this
   return shoulder;
 }
 
