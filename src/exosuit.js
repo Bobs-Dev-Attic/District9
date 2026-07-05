@@ -323,17 +323,21 @@ export function buildExosuit() {
   torso.add(rightArm);
 
   // ------ Legs attach to the pelvis ------
+  // Wide, planted stance to match the hunched reference pose.
   const leftLeg = buildLeg(-1);
-  leftLeg.position.set(-0.7, -0.7, 0);
+  leftLeg.position.set(-0.9, -0.7, 0);
   core.add(leftLeg);
 
   const rightLeg = buildLeg(1);
-  rightLeg.position.set(0.7, -0.7, 0);
+  rightLeg.position.set(0.9, -0.7, 0);
   core.add(rightLeg);
+
+  // Resting forward hunch — the chassis tips forward over the hips.
+  torso.rotation.x = 0.09;
 
   // Expose pivots for animation.
   suit.userData = {
-    core, torso,
+    core, torso, backpack,
     legs: [leftLeg, rightLeg],
     arms: [leftArm, rightArm],
     gunArm: leftArm,
