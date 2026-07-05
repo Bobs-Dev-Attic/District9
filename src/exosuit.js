@@ -397,40 +397,39 @@ function buildLeg(side) {
   return hip;
 }
 
-// The pelvis "inverted tail" — a segmented, faceted keel that extends down and
-// back from the rear of the pelvis, tapering to a point between the legs like a
-// drooping rudder/stinger. Built hanging from the pelvis; caller places it.
+// The pelvis "inverted tail" — a short, segmented faceted keel at the FRONT of
+// the pelvis that points down and slightly forward between the legs, tapering
+// to a point (a codpiece-like stinger). Built hanging from the pelvis; caller
+// places it at the pelvis front.
 function buildPelvisTail() {
   const g = new THREE.Group();
 
-  // base yoke bolting to the pelvis underside
-  g.add(box(0.95, 0.55, 0.8, M.hull, 0, 0.05, 0));
-  g.add(box(0.8, 0.12, 0.62, M.accent, 0, -0.22, 0.08)); // orange band
+  // base yoke bolting to the pelvis front underside
+  g.add(box(0.95, 0.5, 0.75, M.hull, 0, 0.05, 0));
+  g.add(box(0.8, 0.12, 0.58, M.accent, 0, -0.2, 0.06)); // orange band
 
-  // segmented tail curving down + back, tapering as it goes
-  // [w, h, d, y, z, rotX, material]
+  // short segmented keel dropping down + slightly forward, tapering
+  // [w, h, d, y, z, rotX, material] — negative rotX leans the segment forward
   const segs = [
-    [0.78, 0.6, 0.6, -0.42, -0.28, 0.4, M.mid],
-    [0.66, 0.56, 0.55, -0.9, -0.6, 0.6, M.hull],
-    [0.52, 0.5, 0.5, -1.32, -0.95, 0.78, M.mid],
-    [0.38, 0.44, 0.44, -1.66, -1.32, 0.92, M.hull],
-    [0.26, 0.34, 0.38, -1.9, -1.66, 1.02, M.mid],
+    [0.8, 0.55, 0.6, -0.42, 0.16, -0.22, M.mid],
+    [0.6, 0.5, 0.52, -0.9, 0.36, -0.34, M.hull],
+    [0.42, 0.44, 0.46, -1.32, 0.56, -0.46, M.mid],
   ];
   for (const [w, h, d, y, z, rx, m] of segs) {
     const b = box(w, h, d, m, 0, y, z);
     b.rotation.x = rx;
     g.add(b);
-    // dark side notch to read the segment seams
-    const notch = box(w + 0.02, 0.08, d * 0.6, M.dark, 0, y + h * 0.35, z);
+    // dark seam notch on the front face to read the segment seams
+    const notch = box(w + 0.02, 0.08, d * 0.6, M.dark, 0, y - h * 0.3, z + 0.05);
     notch.rotation.x = rx;
     g.add(notch);
   }
 
-  // pointed tip cap
-  const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.24, 0.5, 4), M.hull);
-  tip.rotation.x = -(Math.PI / 2 - 1.05); // continue the droop, pointing back/down
+  // pointed tip cap pointing down + forward
+  const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.26, 0.5, 4), M.hull);
+  tip.rotation.x = Math.PI / 2 + 0.42; // down + slightly forward
   tip.rotation.y = Math.PI / 4;
-  tip.position.set(0, -2.12, -1.95);
+  tip.position.set(0, -1.62, 0.72);
   g.add(tip);
 
   return g;
@@ -524,9 +523,10 @@ export function buildExosuit() {
   rightLeg.position.set(0.9, -0.7, 0);
   core.add(rightLeg);
 
-  // Distinctive pelvis "inverted tail" drooping down/back between the legs.
+  // Distinctive pelvis "inverted tail" — a short keel at the FRONT of the
+  // pelvis pointing down/forward between the legs.
   const tail = buildPelvisTail();
-  tail.position.set(0, -0.55, -0.5);
+  tail.position.set(0, -0.5, 0.5);
   core.add(tail);
 
   // Resting forward hunch — the chassis tips forward over the hips.

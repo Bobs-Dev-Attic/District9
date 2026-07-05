@@ -3,6 +3,11 @@
 The version shown on the game's loading screen comes from `src/version.js`.
 Bump that file, `package.json`, and add an entry here on every update.
 
+## v1.7.1
+- Corrected the pelvis "tail": it now sits at the **front** of the pelvis and
+  points **down/forward** between the legs (was drooping out the back), and it's
+  **shorter** (3 segments) — a codpiece-like central keel matching the reference.
+
 ## v1.7.0
 - Added the distinctive pelvis **"inverted tail"** (`buildPelvisTail`): a
   segmented, faceted keel that droops down and back from the rear of the pelvis,
