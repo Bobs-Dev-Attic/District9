@@ -160,9 +160,9 @@ function resolveObstacles(pos, radius) {
 const clock = new THREE.Clock();
 let walkPhase = 0;
 const followPos = new THREE.Vector3();   // last suit position the camera tracked
-const _forward = new THREE.Vector3();
-const _right = new THREE.Vector3();
-const _up = new THREE.Vector3(0, 1, 0);
+// Fixed world movement axes — WASD is independent of the orbit camera.
+const WORLD_FWD = new THREE.Vector3(0, 0, -1);
+const WORLD_RIGHT = new THREE.Vector3(1, 0, 0);
 
 function tick() {
   requestAnimationFrame(tick);
@@ -171,13 +171,12 @@ function tick() {
   const s = input.update();
 
   if (running) {
-    // ----- Movement basis relative to the current camera view -----
-    camera.getWorldDirection(_forward);
-    _forward.y = 0; _forward.normalize();
-    _right.crossVectors(_forward, _up).normalize();
+    // ----- Movement in a FIXED world frame -----
+    // The mouse is strictly a look/orbit control, so movement is independent
+    // of the camera angle: W/S run along world -Z/+Z, A/D along -X/+X.
     const move = new THREE.Vector3()
-      .addScaledVector(_forward, s.move.y)
-      .addScaledVector(_right, s.move.x);
+      .addScaledVector(WORLD_FWD, s.move.y)
+      .addScaledVector(WORLD_RIGHT, s.move.x);
     const moving = move.lengthSq() > 0.001;
     if (moving) move.normalize();
 

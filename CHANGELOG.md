@@ -3,6 +3,11 @@
 The version shown on the game's loading screen comes from `src/version.js`.
 Bump that file, `package.json`, and add an entry here on every update.
 
+## v1.3.1
+- Decoupled movement from the camera: the mouse is now **strictly look/orbit**.
+  WASD moves the suit along fixed world axes regardless of the camera angle, so
+  rotating the view no longer changes the walk direction.
+
 ## v1.3.0
 - Reworked the arms to the **bent-elbow walk pose** from the reference GIF: the
   forearms now bend forward and hold the weapons up in front of the chassis
