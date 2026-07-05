@@ -3,6 +3,13 @@
 The version shown on the game's loading screen comes from `src/version.js`.
 Bump that file, `package.json`, and add an entry here on every update.
 
+## v1.6.0
+- Added the exosuit's distinctive **beaked head/"face"** (`buildHead`): an
+  elongated angular snout that juts forward and down from between the shoulder
+  yokes — layered brow plates, a central spine ridge, flared cheek plates with
+  hex sensor bolts (orange glow), a tapering beak, and small mandible claws at
+  the tip. Matches the side/top reference profiles.
+
 ## v1.5.0
 - Reworked the upper body to match the detailed reference turnaround and get
   the signature hunched, wide-shouldered "vulture" silhouette:
