@@ -3,6 +3,17 @@
 The version shown on the game's loading screen comes from `src/version.js`.
 Bump that file, `package.json`, and add an entry here on every update.
 
+## v1.8.0
+- Reworked the walk cycle so it reads as a proper biped stride instead of a
+  horse-like paw:
+  - Coordinated **stance/swing** gait — during stance the planted leg rotates
+    back so the body passes over the foot; during swing the knee flexes in-phase
+    to lift the foot forward. (Previously the knee bent 90° out of phase.)
+  - **Feet kept level** with the ground via an ankle counter-rotation (exposed a
+    new `ankle` pivot), with a touch of toe clearance in swing — this removes the
+    hoof-like tilting that read as horse legs.
+  - Slightly softened the body bob to match.
+
 ## v1.7.1
 - Corrected the pelvis "tail": it now sits at the **front** of the pelvis and
   points **down/forward** between the legs (was drooping out the back), and it's
