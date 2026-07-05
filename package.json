@@ -1,0 +1,13 @@
+{
+  "name": "district9-exosuit",
+  "version": "1.0.0",
+  "//version": "Displayed on the loading screen; keep in sync with src/version.js and CHANGELOG.md",
+  "description": "District 9 — a 3D isometric low-poly exosuit combat simulator.",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "serve": "npx --yes serve -l 8080 ."
+  },
+  "keywords": ["game", "three.js", "isometric", "low-poly", "district9", "mech"],
+  "license": "MIT"
+}

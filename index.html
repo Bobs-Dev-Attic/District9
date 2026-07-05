@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>District 9 · Exosuit Simulator</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%2317191c'/><rect x='6' y='2' width='4' height='9' fill='%232b2e33'/><circle cx='8' cy='6' r='1.6' fill='%23ff9a1a'/></svg>">
+
+<style>
+  :root {
+    --accent: #d98a3a;
+    --accent-glow: #ff9a1a;
+    --panel: rgba(18, 22, 26, 0.72);
+    --hp: #45c46a;
+    --fuel: #4aa8d9;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #14171b; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    color: #e8ecef;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+  }
+  #game { display: block; width: 100%; height: 100%; }
+
+  /* ---------- HUD ---------- */
+  #hud {
+    position: fixed; inset: 0; pointer-events: none;
+    padding: 16px; display: flex; flex-direction: column; justify-content: space-between;
+  }
+  #hud-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .bars { display: flex; flex-direction: column; gap: 8px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; }
+  .bar-label {
+    font-size: 11px; letter-spacing: 2px; font-weight: 700;
+    width: 46px; text-transform: uppercase; opacity: 0.85;
+  }
+  .bar {
+    width: 190px; height: 12px; background: var(--panel);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden;
+  }
+  .bar-fill { height: 100%; transition: width 0.12s linear; }
+  #hp-fill { background: linear-gradient(90deg, #2f8f4a, var(--hp)); }
+  #fuel-fill { background: linear-gradient(90deg, #2f6f8f, var(--fuel)); }
+
+  .stats {
+    text-align: right; background: var(--panel); padding: 10px 16px;
+    border-radius: 4px; border: 1px solid rgba(255,255,255,0.12);
+    border-left: 3px solid var(--accent);
+  }
+  .stats .big { font-size: 26px; font-weight: 800; color: var(--accent); line-height: 1; }
+  .stats .lbl { font-size: 10px; letter-spacing: 2px; opacity: 0.7; text-transform: uppercase; }
+  .stats .row { display: flex; gap: 18px; margin-top: 6px; }
+  .stats .row div { font-size: 13px; }
+  .stats .row b { color: #fff; }
+
+  .title-tag {
+    align-self: center; font-size: 12px; letter-spacing: 4px; font-weight: 700;
+    color: var(--accent); opacity: 0.55; text-transform: uppercase;
+  }
+
+  /* ---------- Overlay ---------- */
+  #overlay {
+    position: fixed; inset: 0; z-index: 20;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 50% 40%, rgba(20,24,28,0.82), rgba(8,10,12,0.95));
+    text-align: center; padding: 24px;
+  }
+  #overlay.hidden { display: none; }
+  #overlay-title {
+    font-size: clamp(30px, 7vw, 62px); font-weight: 900; letter-spacing: 4px;
+    color: #fff; text-shadow: 0 0 30px rgba(255,154,26,0.4);
+    background: linear-gradient(180deg, #fff, #c9a06a);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  #overlay-sub {
+    margin-top: 18px; font-size: clamp(13px, 2.4vw, 16px); line-height: 1.9;
+    max-width: 620px; color: #c8cfd4;
+  }
+  .keys {
+    display: inline-block; padding: 1px 8px; margin: 0 1px;
+    background: #22262b; border: 1px solid #3a4147; border-radius: 4px;
+    font-family: monospace; font-size: 0.9em; color: var(--accent);
+  }
+  .dim { opacity: 0.6; font-size: 0.9em; }
+  #start-btn {
+    margin-top: 30px; pointer-events: auto; cursor: pointer;
+    padding: 15px 52px; font-size: 18px; font-weight: 800; letter-spacing: 3px;
+    color: #14171b; background: linear-gradient(180deg, var(--accent-glow), var(--accent));
+    border: none; border-radius: 5px; text-transform: uppercase;
+    box-shadow: 0 6px 24px rgba(255,154,26,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  #start-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,154,26,0.5); }
+  #start-btn:active { transform: translateY(0); }
+  #version {
+    position: absolute; bottom: 20px;
+    font-size: 12px; letter-spacing: 3px; font-weight: 700;
+    color: var(--accent); opacity: 0.7; font-family: monospace;
+  }
+
+  /* ---------- Touch controls ---------- */
+  #touch-controls { position: fixed; inset: 0; z-index: 10; pointer-events: none; display: none; }
+  #touch-controls.active { display: block; }
+  #joystick {
+    position: absolute; left: 26px; bottom: 26px;
+    width: 130px; height: 130px; border-radius: 50%;
+    background: var(--panel); border: 2px solid rgba(255,255,255,0.18);
+    pointer-events: auto; touch-action: none;
+  }
+  #stick {
+    position: absolute; left: 50%; top: 50%; width: 58px; height: 58px;
+    margin: -29px 0 0 -29px; border-radius: 50%;
+    background: rgba(217,138,58,0.85); border: 2px solid rgba(255,255,255,0.35);
+  }
+  .tbtn {
+    position: absolute; border-radius: 50%; pointer-events: auto; touch-action: none;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; letter-spacing: 1px; color: #fff;
+    border: 2px solid rgba(255,255,255,0.25); background: var(--panel);
+  }
+  .tbtn.pressed { background: rgba(217,138,58,0.75); transform: scale(0.94); }
+  #btn-fire {
+    right: 30px; bottom: 44px; width: 108px; height: 108px; font-size: 15px;
+    border-color: rgba(255,90,60,0.5);
+  }
+  #btn-boost {
+    right: 150px; bottom: 40px; width: 76px; height: 76px; font-size: 12px;
+    border-color: rgba(74,168,217,0.5);
+  }
+</style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="hud">
+    <div id="hud-top">
+      <div class="bars">
+        <div class="bar-row">
+          <span class="bar-label">Hull</span>
+          <div class="bar"><div id="hp-fill" class="bar-fill" style="width:100%"></div></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Boost</span>
+          <div class="bar"><div id="fuel-fill" class="bar-fill" style="width:100%"></div></div>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="lbl">Score</div>
+        <div class="big" id="score">0</div>
+        <div class="row">
+          <div>WAVE <b id="wave">0</b></div>
+          <div>HOSTILES <b id="enemies">0</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="title-tag">MNU · Exosuit Control Interface</div>
+  </div>
+
+  <div id="touch-controls">
+    <div id="joystick"><div id="stick"></div></div>
+    <div id="btn-boost" class="tbtn">BOOST</div>
+    <div id="btn-fire" class="tbtn">FIRE</div>
+  </div>
+
+  <div id="overlay">
+    <div id="overlay-title">DISTRICT 9</div>
+    <div id="overlay-sub"></div>
+    <button id="start-btn">DEPLOY</button>
+    <div id="version">v0.0.0</div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js"
+    }
+  }
+  </script>
+  <script type="module" src="./src/game.js"></script>
+</body>
+</html>
