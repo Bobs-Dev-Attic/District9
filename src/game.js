@@ -278,10 +278,14 @@ function tick() {
       backpack.rotation.z = THREE.MathUtils.clamp(player.turnRate * 0.02, -0.1, 0.1);
     }
 
-    // Off-hand arm sways with the gait; gun arm kicks back hard on recoil.
-    arms[1].userData.forearm.rotation.x = Math.sin(walkPhase + 1) * 0.1;
-    gunArm.rotation.x = -player.recoil * 0.28;                       // whole arm kick
-    gunArm.userData.forearm.rotation.x = -0.15 - player.recoil * 0.25;
+    // Bent arms: hold the forward elbow bend, bob with the gait, kick on recoil.
+    const armBob = Math.sin(walkPhase) * 0.06;
+    // Whole-arm (shoulder) swing, opposite to its same-side leg.
+    gunArm.rotation.x = Math.sin(walkPhase + Math.PI) * 0.07 - player.recoil * 0.28;
+    arms[1].rotation.x = Math.sin(walkPhase) * 0.07;
+    // Forearms stay bent (base) and flex slightly through the cycle.
+    gunArm.userData.forearm.rotation.x = gunArm.userData.forearmBase + armBob - player.recoil * 0.22;
+    arms[1].userData.forearm.rotation.x = arms[1].userData.forearmBase - armBob;
 
     // ----- Body orientation -----
     suit.position.copy(player.pos);

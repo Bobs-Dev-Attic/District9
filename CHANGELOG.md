@@ -3,6 +3,15 @@
 The version shown on the game's loading screen comes from `src/version.js`.
 Bump that file, `package.json`, and add an entry here on every update.
 
+## v1.3.0
+- Reworked the arms to the **bent-elbow walk pose** from the reference GIF: the
+  forearms now bend forward and hold the weapons up in front of the chassis
+  instead of hanging straight down. The chaingun / claw are re-aimed to read
+  forward with a slight downward pitch.
+- The walk animation layers on top of the new bent base — the arms bob and the
+  shoulders swing (opposite their same-side leg) through the gait, and the gun
+  arm still kicks back on recoil.
+
 ## v1.2.0
 - Switched to an **exosuit viewer / showcase** mode while the graphics and
   animation are being dialled in:
